@@ -61,8 +61,11 @@ private
   end
   
   def trap_options
-    hostname_bind = VarBind.new(HOSTNAME_OID, OctetString.new(self.host))
-    puppet_env_bind = VarBind.new(PUPPET_ENVIRONMENT_OID, OctetString.new(self.environment))
-    [hostname_bind, puppet_env_bind]
+    {
+      HOSTNAME_OID => self.host,
+      PUPPET_ENVIRONMENT_OID => self.environment,
+    }.map do |key, value|
+      VarBind.new(key, OctetString.new(value))
+    end
   end
 end
