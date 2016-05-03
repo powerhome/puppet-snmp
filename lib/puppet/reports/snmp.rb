@@ -28,9 +28,6 @@ Puppet::Reports.register_report(:snmp) do
   def process
     if self.status == 'failed'
       Puppet.debug "Sending status for #{self.host} to SNMP server #{SNMP_SERVER} at #{Time.now.asctime} due to run status #{self.status} on #{self.configuration_version} in #{self.environment}"
-      hostname_bind = VarBind.new("1.3.18.0.2.4.486", OctetString.new(self.host))
-      puppet_env_bind = VarBind.new("1.3.6.1.4.1.34380.1.1.12", OctetString.new(self.environment))
-      trap_options = [hostname_bind, puppet_env_bind]
       
       if SNMP_VERSION =~ /v2/
         SNMP::Manager.open(:Host => SNMP_SERVER, :Version => :SNMPv2c) do |snmp|
@@ -54,5 +51,11 @@ private
       results = puppetdb.query(:facts, query, :extract => :value).collect { |f| f['value'] }
       results[0]
     end
+  end
+  
+  def trap_options
+    hostname_bind = VarBind.new("1.3.18.0.2.4.486", OctetString.new(self.host))
+    puppet_env_bind = VarBind.new("1.3.6.1.4.1.34380.1.1.12", OctetString.new(self.environment))
+    [hostname_bind, puppet_env_bind]
   end
 end
