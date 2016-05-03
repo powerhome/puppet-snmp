@@ -27,13 +27,6 @@ Puppet::Reports.register_report(:snmp) do
 
   def process
     if self.status == 'failed'
-      uri = URI(Puppet::Util::Puppetdb.config.server_urls.first)
-      puppetdb = PuppetDB::Connection.new(uri.host, uri.port, uri.scheme == 'https')
-      parser = PuppetDB::Parser.new
-      query = parser.facts_query("fqdn='#{self.host}'", ['ipaddress'])
-      results = puppetdb.query(:facts, query, :extract => :value).collect { |f| f['value'] }
-      ip_address = results[0]
-
       Puppet.debug "Sending status for #{self.host} to SNMP server at #{SNMP_SERVER}"
       msg = "Puppet run for #{self.host} #{self.status} at #{Time.now.asctime} on #{self.configuration_version} in #{self.environment}"
       hostname_bind = VarBind.new("1.3.18.0.2.4.486", OctetString.new(self.host))
@@ -49,6 +42,18 @@ Puppet::Reports.register_report(:snmp) do
           snmp.trap_v1("enterprises.34380", ip_address, :enterpriseSpecific, 42, 12345, trap_options)
         end
       end
+    end
+  end
+  
+private
+  def ip_address
+    @ip_address ||= begin
+      uri = URI(Puppet::Util::Puppetdb.config.server_urls.first)
+      puppetdb = PuppetDB::Connection.new(uri.host, uri.port, uri.scheme == 'https')
+      parser = PuppetDB::Parser.new
+      query = parser.facts_query("fqdn='#{self.host}'", ['ipaddress'])
+      results = puppetdb.query(:facts, query, :extract => :value).collect { |f| f['value'] }
+      results[0]
     end
   end
 end
