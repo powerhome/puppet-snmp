@@ -348,6 +348,7 @@ class snmp (
         $package_ensure = 'present'
       }
       $file_ensure = 'present'
+      $varnetsnmp_ensure = 'directory'
       if $trap_service_ensure in [ running, stopped ] {
         $trap_service_ensure_real = $trap_service_ensure
         $trap_service_enable_real = $trap_service_enable
@@ -371,6 +372,7 @@ class snmp (
     /(absent)/: {
       $package_ensure = 'absent'
       $file_ensure = 'absent'
+      $varnetsnmp_ensure = 'absent'
       $service_ensure_real = 'stopped'
       $service_enable_real = false
       $trap_service_ensure_real = 'stopped'
@@ -412,7 +414,7 @@ class snmp (
   }
 
   file { 'var-net-snmp':
-    ensure  => 'directory',
+    ensure  => $varnetsnmp_ensure,
     mode    => $snmp::params::varnetsnmp_perms,
     owner   => $snmp::params::varnetsnmp_owner,
     group   => $snmp::params::varnetsnmp_group,
