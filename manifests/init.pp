@@ -415,6 +415,7 @@ class snmp (
 
   file { 'var-net-snmp':
     ensure  => $varnetsnmp_ensure,
+    force   => true,
     mode    => $snmp::params::varnetsnmp_perms,
     owner   => $snmp::params::varnetsnmp_owner,
     group   => $snmp::params::varnetsnmp_group,
